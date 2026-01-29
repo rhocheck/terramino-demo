@@ -1,10 +1,13 @@
-resource_changes = [{
-  "type": "azurerm_linux_virtual_machine",
-  "mode": "managed",
-  "change": {
-    "after": {
-      "vm_size": "Standard_D2s_v3",
+resource_changes = {
+  "azurerm_linux_virtual_machine.web": {
+    "address": "azurerm_linux_virtual_machine.web",
+    "type": "azurerm_linux_virtual_machine",
+    "mode": "managed",
+    "change": {
+      "actions": ["create"],
+      "after": {
+        "size": "Standard_D2s_v3",  # ← Niocht erlaubte Größe
+      },
     },
   },
-  "destroy": false,
-}]
+}

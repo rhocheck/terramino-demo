@@ -1,27 +1,25 @@
 # Sentinel Policy für Azure VMs - Nur B2s-VM-Größen erlaubt
 import "tfplan/v2" as tfplan
-import "strings"
 
-# Erlaubte VM-Größen (Kommas hinzugefügt!)
 allowed_vm_sizes = [
-  "Standard_B2als_v2",
   "Standard_B2ats_v2",
+  "Standard_B2als_v2",
   "Standard_B2ls_v2",
   "Standard_B2ts_v2",
 ]
 
-# VM-Ressourcen finden
 vm_resources = filter tfplan.resource_changes as _, rc {
   rc.type is "azurerm_linux_virtual_machine" or 
   rc.type is "azurerm_windows_virtual_machine"
 }
 
-# Hauptregel: Alle VMs müssen erlaubte Größen haben
 main = rule {
   all vm_resources as _, rc {
-    # Nur bei Erstellung/Änderung prüfen (destroy überspringen)
-    not rc.destroy and 
-    length(rc.change.after.vm_size) > 0 and
-    rc.change.after.vm_size in allowed_vm_sizes
+    # Delete immer OK
+    (rc.change.actions else null is null or 
+     length(rc.change.actions) is 0 or 
+     rc.change.actions[0] is "delete") or
+    (rc.config.size else null in allowed_vm_sizes) or
+    (rc.change.after.size else null in allowed_vm_sizes)
   }
 }

@@ -4,3 +4,4 @@ azure/policy/.sentinel
 azure/.terraform*
 azure/terraform.tfstate*
 azure/terraform.tfvars
+azure/cloud.tf
