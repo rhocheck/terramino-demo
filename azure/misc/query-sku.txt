@@ -1,0 +1,17 @@
+noglob az vm list-skus \
+  --location westeurope \
+  --resource-type virtualMachines \
+  --all \
+  -o table \
+  --query "
+    [? (restrictions == null || length(restrictions) == \`0\`)
+      && capabilities[?name=='vCPUs' && to_number(value) <= \`2\`]
+    ].{
+      sku:name,
+      family: family,
+      vCPUs: to_number(capabilities[?name=='vCPUs']|[0].value),
+      memoryGB: to_number(capabilities[?name=='MemoryGB']|[0].value),
+      zones: locationsInfo[0].zones
+    } | sort_by(@,&vCPUs)
+  "
+``

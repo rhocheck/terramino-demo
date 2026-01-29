@@ -1,0 +1,10 @@
+resource_changes = [{
+  "type": "azurerm_linux_virtual_machine",
+  "mode": "managed",
+  "change": {
+    "after": {
+      "vm_size": "Standard_B2als_v2",
+    },
+  },
+  "destroy": false,
+}]

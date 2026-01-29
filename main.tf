@@ -3,7 +3,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.4.0"
+      version = "~> 5.40.0"
     }
   }
 }
@@ -89,33 +89,35 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
 # Create an EC2 instance with Terramino Application
 resource "aws_instance" "web" {
-  ami                         = "ami-0e1a3a59369c81682" 
-  instance_type               = "t2.medium"
+  ami                         = data.aws_ami.amazon_linux_2.id
+  instance_type               = "t2.micro"
   count                       = "1"
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.web_sg.id]
   associate_public_ip_address = true
 
-  user_data = <<-USERDATA
-              #!/bin/bash
-              yum update -y
-              amazon-linux-extras install -y mariadb10.5
-              amazon-linux-extras install -y php8.2
-              yum install -y httpd
-              systemctl start httpd
-              systemctl enable httpd
-              systemctl is-enabled httpd
+  user_data_replace_on_change = true
 
-              usermod -a -G apache ec2-user
-              chown -R ec2-user:apache /var/www
-              chmod 2775 /var/www
-              find /var/www -type d -exec chmod 2775 {} \;
-              find /var/www -type f -exec chmod 0664 {} \;
-              cd /var/www/html
-              curl -O https://raw.githubusercontent.com/hashicorp/learn-terramino/master/index.php
-              USERDATA
+  user_data = <<-EOF
+#!/bin/bash
+yum update -y
+yum install -y httpd php mariadb
+systemctl start httpd
+systemctl enable httpd
+cd /var/www/html
+curl -O https://raw.githubusercontent.com/hashicorp/learn-terramino/master/index.php
+  EOF
 
   tags = {
     Name = "web-instance"
