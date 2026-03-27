@@ -203,6 +203,6 @@ resource "azurerm_linux_virtual_machine" "web" {
 	)
 
 	tags = {
-		Name = "web-instance"
+		Name = "web-instance-small"
 	}
 }
